@@ -1,0 +1,16 @@
+# first try: Database Recovery Advisor (DRA)
+list failure;
+Advise failure;
+repair failure; 
+
+# if controlfile missing/damaged
+startup nomount;
+restore controlfile from 'oracle/bkup/mynewdb';
+alter database mount
+exit
+rman target /
+restore database;
+recover database;
+restore and recover database
+alter database resetlogs;
+alter database 

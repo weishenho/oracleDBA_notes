@@ -1,0 +1,7 @@
+set heading off;
+set pagesize 0;
+set feedback off;
+
+spool name.sh
+select owner || '.' || table_name from dba_tables;
+spool off

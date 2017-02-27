@@ -1,0 +1,3 @@
+ora-01075: you are currently logged on
+ps -ef | grep pmon
+kill -9 pid

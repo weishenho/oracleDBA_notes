@@ -1,0 +1,51 @@
+# Start RMAN
+rman target /
+
+# Reports of backups
+list backup of database;
+delete expired backup;
+delete expired archivelog all;
+delete obsolete;
+
+# Manage Backup
+# validate backup files in filesystem
+crosscheck backup
+crosscheck archivelog all;
+
+# delete missing backup files (expired)
+delete expired backup;
+delete expired archivelog all;
+
+# delete backup files no long needed
+delete obsolete;
+
+#check again
+crosscheck backup;
+crosscheck archivelog all;
+
+
+# Full Backup
+backup database plus archivelog;
+
+# Incremental Backup
+# Level 0 back up
+backup incremental level 0 database;
+backup as backupset incremental level 0 database;
+
+backup incremental level 1 system;
+backup incremental level 1 database;
+# Block change since level 0
+backup incremental level 1 cumulative database;
+
+###
+-Backup strategy-
+Level 0 or full every month
+Cumulative level 1 every week
+Differential level 1 everyday
+
+-backup channel-
+Disk or tape
+
+-Automate DB backup-
+cronjob or DB control
+###

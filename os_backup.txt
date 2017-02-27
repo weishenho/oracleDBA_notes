@@ -1,0 +1,29 @@
+# Cold backup
+set heading off;
+set pagesize 0;
+set feedback off;
+
+spool cold_backup.sh
+select 'cp ' ||name|| ' /oracle/data2/mynewdb/bkup' from v$controlfile
+union all
+select 'cp ' ||name|| ' /oracle/data2/mynewdb/bkup' from v$datafile
+union all
+select 'cp ' ||member|| ' /oracle/data2/mynewdb/bkup' from v$logfile;
+create pfile = '/oracle/data2/mynewdb/bkup/spfile_backup.ora' from spfile;
+spool off
+shutdown immediate
+exit
+
+chmod u+x cold_backup.sh
+sh cold_backup.sh
+sqlplus / as sysdba
+startup
+
+# catalog user managed datafile
+catalog datafilecopy '/oracle/data2/mynewdb/sysaux01.dbf.bak';
+list copy of tablespace sysaux;
+list copy copies;
+catalog start with '/oracle/data2/mynewdb/';
+
+# Restore individual datafiles from catalog
+restore and recover datafile 4;
