@@ -1,0 +1,3 @@
+Automatic storage management(ASM)
+A logical volume manager by oracle
+

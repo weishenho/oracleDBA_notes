@@ -1,0 +1,190 @@
+Datafiles can be in 4 devices: local filesystem, clustered file systems, ASM disk groups and raw devices.
+
+clusterd FS:
+external disks mounted on many computers
+
+ASM:
+logical volume manager
+===========================
+select segment_type, count(1) from dba_segments group by segment_type;
+Table
+Heap-structed table: variable length rows, in random order.
+Typically a segment is table segment
+
+Index
+Sorted list of key value pair
+
+Type2 UNDO
+Undo segment: stores prechange version of data for rollback, read consistency and isolation.
+
+Rollback
+should not be used. there always be one rollback segement for transaction used in create database.
+
+Table partition
+each partiion = a segment
+can be in different tablespace
+
+Index partition
+An index by default is one segement.
+if partition table then will usually partition indexes.
+
+LOBSEGMENT, LOBINDEX, LOB PARTITION
+if column is large object data type => only pointer store in table.
+Points to an entry in another segment where data resides.
+BLOB, CLOB, NCLOB, BFILE
+
+Cluster
+Contains several tables. Opposite of partition table.
+Denormalize many tables into a segment.
+
+Nested Table
+Column is user-defined object type => stored in its own segment as a nested table.
+
+=========================
+Alter tablespace name offline [normal | immediate | temporary]
+Tablespace offline types:
+Normal
+Checkpoint all tablespace datafiles
+
+Immediate
+immediately without flushing dirty buffers.
+May corrupt files
+must recover
+
+Temporary
+checkpoint all files
+Damaged files will be offlined
+Limit the number of files that need to be recovered.
+
+
+###
+Make tablepspace read only
+Alter tablespace name [read only | read write]
+Read only tablespace, objets can be dropped.
+Read only can be use for backup and restore operations.
+
+###
+Reize tablespace / Add more space
+Alter database datafile filename resize n[M|G|T];
+m=mb, g=gb, t=gb
+eg. alter database datafile '/oradata/user02.dbf' resize 10m;
+
+###
+Add datafile to tablepsace
+alter tablesapce name add datafile 'filename' size 2g;
+
+Make auto extend
+Alter database datafile 'filename' autoextend on next 100m maxsize 4g;
+
+==========================
+drop tablespace
+drop tablepsace name including contents and datafiles;
+
+=========================
+MMON raises Alert and monitor every tablespace in real time.
+
+Default:
+85% full - warning alert
+97% full - critical alert
+
+=========================
+oracle-managed files(OMF)
+remove knowledge of file systems for DBA
+
+set parameter:
+DB_CREATE_FILE_DEST
+DB_CREATE_ONLINE_LOG_DEST 1,2,3,4,5
+DB_RECOVERY_FILE_DEST
+
+eg.
+enable omf for datafile creation:
+alter system set db_create_file_dest='/home/db11g/oradata';
+create tablespace omftbs;
+
+========================
+create tablespace
+
+defaults:
+logging, extent mgmt: local(bitmap), autoallocate (extent sizes), segment mgmt: auto
+
+Normal:
+bare min for non OMF:
+create tablespace name
+datafile
+'filename1' size 500m;
+
+https://www.techonthenet.com/oracle/tablespaces/create_tablespace.php
+
+temp tablespace
+CREATE TEMPORARY TABLESPACE tbs_temp_01 TEMPFILE 'tbs_temp_01.dbf' SIZE 5M AUTOEXTEND ON;
+
+undo tablespace
+CREATE UNDO TABLESPACE tbs_undo_01 DATAFILE 'tbs_undo_01.f' SIZE 5M AUTOEXTEND ON [RETENTION GUARANTEE];
+
+======================
+rename datafile in online mode
+alter database move datafile 'filename1' to 'failename2';
+
+keep soure file:
+alter database move datafile 'filename1' to 'failename2' KEEP;
+
+exisitng datafile:
+alter database move datafile 'filename1' to 'failename2' reuse;
+
+====================
+rename datafile in offline mode
+1) alter tablespace name offline;
+2) copy/move files to new location
+3) alter database rename file
+'filename1' to 'filename11';
+4) alter tablespace name online;
+
+====================
+extent management
+
+local(bitmap) or dictionary
+*should always use local
+
+Dictionary:
+query sys.uet$ for used extents
+query sys.fet$ for free extents
+
+local:
+each bit in bitmap covers a range of blocks
+a datafile can have many bitmaps hence allowing concurrent access
+
+uniform size or autoallocate
+uniform - extent always same size
+eg.
+create tablespace name datafile 'filepath' size 10g
+extent management local uniform size 160m;
+
+autoallocate:
+0..15 extent: 64kb or 65500b
+progressively allocate larger extents, ever increasing extents space
+
+convert dictionary to local if database upgrade version e.g 8i to 9i
+execute dbms_space_admin.tablespace_migrate_to_local('tablespacename')
+
+=======================
+segment space management
+
+manual or automatic
+*should always use automatic
+
+automatic:
+set of bitmaps, describle how full each block is.
+*5 bitmaps for each segment
+each block will appear on exactly one bitmap.
+-bitmap for full blocks
+-bitmap for 75% to 100% full
+-bitmap for 50% to 75% full
+-bitmap for 25% to 50% full
+-bitmap for 0% to 25% full
+
+manual:
+use free list, stats blocks available for insert but not how full they all.
+*Have to test if block enough space at insert time.
+
+select tablespace_name, segment_space_management from dba_tablespaces;
+
