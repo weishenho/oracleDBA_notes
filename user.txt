@@ -1,0 +1,196 @@
+View privileges
+query:
+user_sys_privs
+user_tab_privs
+user_role_privs
+
+dba_sys_privs
+dba_tab_privs
+dba_role_privs
+
+========================================
+create user john identified by password;
+
+eg.
+create user scott identified by tiger
+default tablespace users temporary tablespace temp
+quota 100m on users, quota unlimited on example
+profile developer_profile
+password expire
+account unlock;
+
+*everything above can be altered
+change password:
+alter user scott identified by lion;
+
+change default and temporary tablespaces
+alter user scott default tablespace hr_data temporary tablespace hr_temp;
+
+change quotas:
+alter user scott profile prod_profile;
+
+force password change:
+alter user scott password expire;
+
+lock account:
+alter user scott account lock;
+
+drop user & all objects owned by user:
+drop user scott;
+drop user scott cascade;
+
+=========================================
+Default tablespace
+-where user created objects resides
+
+# change system wide default tablespace
+Alter Database Default Tablespace tblspace_name;
+
+# specific user
+alter user _user_ default tablespace _tblspacename_;
+alter user _user_ temporary tablespace _tblspacename_;
+
+=========================
+profile
+
+-restrictions on password
+-limit resource usage
+
+===============================
+Account status
+
+open - available for use
+Locked - DBA purposely locked account
+expired - password expired, need to change
+expired(grace) - grace period for password to be changed
+locked(timed) - locked because of failed login attempts, locked for period
+expired & locked
+expired & locked(timed)
+expired(grace) & locked
+expired(grace) & locked(time)
+
+To lock/unlock user:
+alter user _user_ account lock;
+alter user _user_ account unlock;
+
+To forcely expire password:
+alter user _user_ password expire;
+
+======================================
+Auth methods
+
+OS
+Password file
+Password - data dic auth, db must be open
+External
+Global
+
+=======================
+Change user password
+
+alter user _user_ identified by _password_;
+
+====================================
+
+object privileges
+Select, insert, update, delete, alter, execute
+
+# allow all DML and select
+grant all on schema.object to user;
+
+# allow user to grant privs but cannot execute the privs itself (for DBA user)
+grant GRANT ANY schema.object to user;
+
+Resource role = unlimited tablespace = create trigger, sequence, cluster, type, procedure, table, indextype, operator
+
+revoke any grant with grant => cascade
+
+with admin option:
+-system privileges not object privileges
+eg. grant roles, create table
+
+with grant option
+-for object privileges
+eg. grant select on schema.object
+
+
+system privileges
+grant:
+create session - connect to database
+restricted session - startup restrict, alter system enable restricted, only user with privilege can connect
+alter database - modify physical structures
+alter system - instance & memory strucutres
+create tablespace - can alter & drop tablespace
+create table - create table in own schema, include alter & drop. 
+grant any object - grant any objects can use the objects
+create any table - create tables that belongs to other users/schema
+drop any table
+insert/update/delete any table
+select any table
+
+create role:
+create role rolename;
+grant privs to rolename;
+
+predefined roles:
+connect
+resource
+DBA - all privs except shutdown & startup database
+select_catalog_role  - 2000 object privs for dictionary objects, no system privs and user data. for jr dba for monitor and report
+scheduler_admin - system privs for job scheduling service.
+public - default on all users, does not appear on dba_roles.
+======================================
+
+revoke all privs:
+revoke all on schema.object from _user_;
+
+=======================================
+
+profile
+
+Password management
+Failed_login_attempts - no. of times wrong password before lock
+password_lock_time - no. of days lock when fail_login_attempts reached
+password_life_time - no. of days before password expire
+password_grace_time - no. of days to change passwords when acct expired.
+password_reuse_time - no. of days before password can be reused.
+password_reuse_max - no. of times password can be reused.
+password_verify_function - name of function to run to check new password for required degree of complexity.
+
+
+Resource limits
+session_per_user
+cpu_per_session - in centiseconds, a session is allowed before terminate
+cpu_per_call - in centiseconds, the time the session can take to execute a sql stmt before it terminate
+logical_read_per_session - no. of blocks read by session before it terminate
+logical_read_per_call - no. of blocks read by a stmt
+private_sga - for sessions in shared server, no. of kb a session is allowed to take in the SGA for session data.
+connect_time - in minutes, max duration of a session before forcely terminate
+idle_time - in minutes, max time a session can idle
+composite_limit - weight sum of cpu_per_session, connect_time, logical_read_per_session, private_sga
+
+resource limit by default is false, to enable:
+alter system set resource_limit=true;
+
+
+Create profile:
+create profile name limit
+session_per_user unlimited
+password_life_time 7
+password_grace_time 1;
+
+assign profile:
+alter user _username_ profile _profilename_;
+
+drop profile:
+cannot drop profile is assigned to user(s).
+drop profile profile_name;
+drop profile profile_name cascade;
+assign affected users with default profile profile.                                  
+
+
+default profile settings:
+failed_login_attempts 10
+password_lock_time 1
+password_life_time 180
+password_grace_time 7

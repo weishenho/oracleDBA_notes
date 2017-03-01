@@ -188,3 +188,8 @@ use free list, stats blocks available for insert but not how full they all.
 
 select tablespace_name, segment_space_management from dba_tablespaces;
 
+=========================
+
+Extent
+-consecutive blocks of oracle blocks (not OS)
+-Assigned to a Segment
