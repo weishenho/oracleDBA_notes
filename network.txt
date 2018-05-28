@@ -1,0 +1,66 @@
+dedicated server or shared server
+
+listener gui: oracle net manager or oracle net configuration assistant
+
+Database registration
+static:
+eg.
+SID_LIST_LIST2=
+ (SID_LIST = 
+   (SID_DESC = 
+	(ORACLE_HOME = /oracle_home/)
+	(SID_NAME = mynewdb)
+   )
+ )
+
+Dynamic:
+alter system register
+#show parameter local_list
+
+if not on default port (1521)
+alter system set local_listener=list2;
+alter system register;
+
+or
+
+alter system set local_listener'(address=(pro) (host=127.0.0.1) (port=1522))';
+
+
+Techniques for name resolution
+easy connect
+only can use TCP protocol
+no load balancing or connect time fail over or other adv. features
+eg. connect scott/tiger@127.0.0.1:1522/mynewdb
+
+local naming (tnsnames)
+eg.
+test = 
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+       (ADDRESS = (PROTOCOL = TCP) (HOST = 127.0.0.1) (PORT = 1522))
+    )
+    (CONNECT_DATA=(sid=mynewdb))
+  )
+
+
+Directory naming and external Naming
+LDAP - lightweight directory protocol
+external naming: NIS+, CDS, DCE
+
+
+Filenames and TNSADMIN environment variable
+listener.ora is a server side file
+tnsnames.ora - client side and also instance itself to locate a listener to register.
+sqlnet.ora - optional, exisit on server or client, for sercurity rules and encryption settings
+
+default location: ORACLE_HOME/network/admin
+if not at default location:
+set TNSADMIN=/location/; export TNSADMIN
+
+
+
+Database link
+connect database to database
+eg. create database link prodscott
+connect to scott identified by tiger using 'prod'
+pg 244

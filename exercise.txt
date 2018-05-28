@@ -1,0 +1,5 @@
+pg. 447
+pg. 684
+pg. 298
+
+v$rollstat

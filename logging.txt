@@ -1,0 +1,11 @@
+archive log list
+
+#flush logfile to archivelog
+alter system switch logfile; 
+
+##database must be in mount mode to enable/disable archivelog
+#disable archivelog
+alter database noarchivelog;
+
+#enable archivelog
+alter database archivelog;

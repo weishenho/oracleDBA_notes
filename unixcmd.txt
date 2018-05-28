@@ -1,0 +1,14 @@
+# Display memory usage
+nmon
+m
+
+top
+
+# Disk volume
+df -g
+du 
+
+# Display help
+man _cmd_
+
+

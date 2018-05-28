@@ -1,0 +1,95 @@
+statistics only benefit SQL not PL/SQL.
+
+object statistcs:
+stats viewable in DBA_TABLES
+include:
+No. of rows
+No. of blocks
+Amount of free space in blocks that are used
+Average length of rows
+No. of chained rows - row in 2 or more blocks
+
+stats for  Column of table in DBA_TAB_COLUMNS view.
+include:
+No. of distinct values
+highest & lowest values
+No. of nulls
+Average column length.
+
+stats on indexes, DBA_Indexes, include:
+Depth of tree
+No. of distinct values
+clustering factor - how close the natural order of rows follows the order of keys
+
+statistics store in data dictionary, optimizer use the statistics to make decision.
+
+eg. analyze command:
+analyze table regions compute statistics;
+insert into regions values(99,'Birtish isles');
+pg 475
+
+eg. dbms_stats
+exec dbms_stats.gather_table_stats('HR', 'REGIONS');
+select num_rows from user_tables where table_name='regions';
+
+view scheduler jobs:
+select job_name from dba_scheduler_jobs;
+
+instance statistics are accumulated in memory and flushed to automatic workload repository(AWR) by MMON
+show paraneter statistics_level
+Typical: stats needed by self-mgmt & tuning capabilities and will also enable automatic object analysis task that run daily.
+Basic: disable computation of AWR stats and daily analysis.
+All: gather all possible statistics, includes OS activity & detailed stats on sql statement execution. 
+pg 508
+
+
+
+Automatic workload repository
+AWR exists as a set of tables and other objects in sysaux tablespace.
+
+snapshots of stats in AWR are kept for 8 days, by default. (Configurable).
+- able to have a historical picture of changes in database objects.
+
+
+################
+memory advisor
+query v$shared_pool_advise
+
+
+find invalid objects
+select owner, object_name, object_type from dba_objects where status='INVALID';
+repair invalid objects
+alter object_type object_name COMPILE;
+eg.
+alter procedure hr.add_reg compile;
+alter view rname compile;
+
+if compile error:
+desc dba_dependencies
+
+recompile all objects:
+@?/rdbms/admin/utlrp
+
+
+unusable indexes
+common causes: table moved(alter table... move) change physical placement of rows
+instance param - SKIP_UNUSABLE_INDEXES, default true
+
+find unusuable indexes:
+select owner, index_name from dba_indexes where status='UNUSUABLE';
+
+repair:
+alter index index_name rebuild;
+
+
+
+#####################
+Automatic Database Diagnostic monitor (ADDM)
+*starting point
+recommendations:
+Hardware changes (such as adding CPUs)
+Database Configuration (eg. instance param settings)
+Schema Changes (eg. table & index partitioning)
+Application changes (eg. using bid variables)
+Using other advisors (for more detailed analysis and recommendations)
+

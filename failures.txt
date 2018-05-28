@@ -1,0 +1,19 @@
+pg 574
+Statement Failure
+common cause: invalid data, format or constraint violation.
+eg.
+insert char into numeric field (oracle will auto typecast)
+logic errors: deadlocks cause by app
+space management problems are frequent but should nv occur.
+Good DBA monitor space usage proactively.
+space-related failures:
+cant extend segment
+out of undo space
+not enough temp space
+user hit quota
+insufficent privileges
+**Use undo advisor, segment advisor, automatic database diagnostic monitor and alert mechanism
+
+
+User Process Failure
+

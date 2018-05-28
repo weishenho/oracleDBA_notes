@@ -1,0 +1,27 @@
+query views:
+name, status v$datafile
+v$logfile
+name, open_mode v$database
+v$tempfile 
+
+
+check if database can create with 
+create database name;
+
+
+1) mkdir datafile directory
+2) create pfile - copy init file and edit, change database name
+3) startup nomount pfile='.../path to pfile';
+4)
+create database name
+....
+....
+.....
+5)
+@?/rdbms/admin/catalog.sql
+@?/rdbms/admin/catproc.sql
+@?/sqlplus/admin/pupbld.sql
+
+catalog.sql - create views of data dic tables, dynamic performance views, public synonyms for views. grant public access to synonyms
+catproc.sql - run scripts required for used with PL\SQL
+pupbld.sql - enable sqlplus to disable commands by user.

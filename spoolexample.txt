@@ -2,6 +2,6 @@ set heading off;
 set pagesize 0;
 set feedback off;
 
-spool name.sh
-select owner || '.' || table_name from dba_tables;
+spool drop_schema.sh
+select owner || '.' || table_name from dba_tables where owner=‘user1;
 spool off

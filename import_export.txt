@@ -1,0 +1,93 @@
+sql*load
+conventional or direct path technique
+
+conventional
+create insert statements
+normal commits
+
+direct path
+bypass buffer cache
+1) reads source data file and sends contents to server process
+2) server process make blocks of table data in its PGA
+3) then writes to directly to datafile(s)
+4) completes shift high water mark.
+
+drawbacks:
+referential integrity constraints must be dropped or disabled temporary
+insert triggers dont fire
+table will be locked against DML from other sessions
+cannot use for clustered tables.
+
+
+
+write/read directory objects
+use UTL_FILE package
+only those directory listed in UTL_FILE_DIR can be accessed
+cannot limit access to particular users
+
+create directory
+give oracle user who will be running data pump permission to read/write to it. pg 670
+directories are not schema object hence cannot drop by creator
+*sysdba can drop directories
+Directories always own by "sys"
+
+
+External tables
+objects defined in data dictionary
+can be queried
+cannot execute DML on them
+write to them with data pump
+access external tables through oracle directories
+
+common use: avoid use of sql*loader.
+sql*loader routine: loader -> staging table -> DSS table.
+(need to wait for loading to complete then can merge with DSS table)
+Using external tables can load and merge at the same time.
+
+eg.
+create table new_dept (deptno number(2), dname varchar2(14), loc varchar2(13))
+organization external (type oracle_loader default directory scott_dir
+access parameters (records delimited by newline
+badfile 'depts.bad' discardfile 'dept.dsc' logfile 'depts.log' fields terminated by ',' missing field values are null)
+location ('depts.txt'));
+
+
+
+data pump
+server side utility
+can detach and reatach running data pump process
+expdp & imdp
+processes:
+2 queues, files & a table.
+data pump master process (DMnn)
+one or more worker process (DWnn)
+if enable parallelism - each DWnn can have 1 or more parallel execution servers (Pnnn)
+control queue & status queue
+DMnn divides work and place them in control Q.
+worker pick work from control Q, and maybe use Pnnn to do complete work.
+Status Q for monitoring
+
+Files generated:
+SQL files, dump files, log files.
+Dump file - export data
+SQL files - DDL statements
+log files - describle history of job run & tablespace size
+control table - created by DMnn
+
+data pump always use oracle directories.
+
+4 ways to specify directory:
+1) per-file setting for data pump job
+2) parameter setting for data pump job
+3) DATA_PUMP_DIR environment variable
+4) DATA_PUMP_DIR directory object
+
+
+
+remap eg.
+expdp system/*** schemas=hr,oe
+dumpfile=hr_oe_code.dmp logfile=hr_oe_code.log
+include=function,include=package, include=procedure, include=type
+
+eg. network transfer
+pg. 684

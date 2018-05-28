@@ -1,3 +1,16 @@
+RMAN
+- redo logs
+- tempfiles
+- static pfile
+- external pwfile
+
++ Archivelog
++ Control File
++ perm datafiles
++ spfile
+
+###ensure archive log is enabled
+
 # Start RMAN
 rman target /
 
@@ -49,3 +62,56 @@ Disk or tape
 -Automate DB backup-
 cronjob or DB control
 ###
+
+
+
+#############
+clone database on same server
+
+1) Take rman backup mynewdb including control file
+2) create pfile for mynewdb1
+db_name - 'mynewdb'
+db_unique_name='mynewdb1'
+3) startup mount
+4) restore controlfile - restore controlfile from '/backupfile location'
+5) alter database mount
+6) catalog start with 'rman backup files location';
+7) 
+run {
+allocation channel ch1 device type DISK;
+SET NEWNAME FOR DATAFILE 1 TO '/oracle/data2/mynewdb1/system01dbf';
+SET NEWNAME FOR DATAFILE 1 TO '/oracle/data2/mynewdb1/sysaux01.db';
+...
+RESTORE DATABASE;
+SWITCH DATAFILE ALL;
+RECOVER DATABASE;
+}
+
+7)
+alter database rename file '.../mynewdb/redo01.log' to '.../mynewdb1/redo01.log';
+alter database rename file '.../mynewdb/redo02.log' to '.../mynewdb1/redo02.log';
+alter database rename file '.../mynewdb/redo03.log' to '.../mynewdb1/redo03.log';
+
+8) alter database open resetlogs;
+9) create temp files
+#alter tablespace temp add tempfile '.../mynewdb1/temp01.dbf' size 275775488 autoextend on next 655360 maxsize 32767M;
+
+rename the db name from mynewdb to mynewdb1
+a) create text based controlfile
+alter database backup controlfile to trace as '/tmp/mynewdb1.txt';
+
+create controlfile set database "mynewdb1" resetlogs archivelog
+.....
+....
+...
+....
+...
+...
+
+alter database open resetlogs;
+
+alter tablespace temp add tempfile '.../mynewdb1/temp01.dbf' size 275775488 autoextend on next 655360 maxsize 32767M;
+
+create spfile from pfile 
+shutdown immediate
+startup

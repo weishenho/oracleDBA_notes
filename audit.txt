@@ -1,0 +1,75 @@
+Database Auditing
+AUDIT_TRAIL param:
+None or false: disabled
+OS: audit records write to OS's audit_trail, application log on windows or audit_file_dest param on unix.
+DB: audit record write to data dictionary, sys.aud$. use views to see contents.
+DB_EXTENDED: same as DB but include sql statement with bind variables that generate the audit record.
+XML: same as os, but formatted in XML tag
+XML_EXTENDED: as XML, with sql statements and bind variables
+
+audit privileges:
+audit create any trigger;
+audit select any table by session;
+
+By default audting generates ONE audit record for every session that violates an audit condition, irrespective of number of violations.
+Same as appending BY SESSION to audit command. 
+Append BY ACCESS instead generates one record for every violation.
+
+auditing specific objects:
+audit insert on ar.hz_parties whenver successful;
+audit all on ar.ra_interface_lines_all;
+
+By default, all operations successful or not are audited
+
+audit login:
+audit session whenever not successful;
+
+views for sys.aud$, DB/DB_EXTENEDED param:
+DBA_AUDIT_TRAIL,(DBA_AUDIT_OBJECT, DBA_AUDIT_STATEMENT, DBA_AUDIT_SESSION.) subset of DBA_AUDIT_TRAIL
+commonly used cols:
+OS_USERNAME, USERNAME, USERHOST, TIMESTAMP, OWNER, OBJ_NAME, ACTION_NAME, PRIV_USED, SQL_TEXT
+
+
+
+Value-Based Auditing with TRIGGERS
+Able to capture the values that were affected
+
+eg.
+create or replace trigger system.creditrating_audit
+after update of creditrating
+ON oe.customers
+referencing new as new old as old
+for each row
+begin
+if :old.creditrating != :new.creditrating THEN
+insert into system.creditrating_audit
+values (sys_context('userenv','os_user'), sys_context('userenv', 'ip_address'), 
+:new.cust_id || ' credit rating changed from ' || :old.creditrating || ' to ' || :new.creditrating);
+end if;
+end;
+/
+
+
+
+Fine-Grained Audting (FGA)
+FGA can be configured to generate audit records when certain rows are accessed or when certain columns of certain rows are accessed.
+FGA package DBMS_FGA.
+
+To create FGA audit policy: ADD_POLICY.
+execute dbms_fga.add_policy(-
+object_schema => 'HR',-
+object_name => 'EMPLOYEES', -
+policy_name => 'POL1', -
+audit_condition => 'department_id=80', -
+audit_column => 'SALARY');
+
+query DBA_FGA_AUDIT_TRAIL to view audit.
+
+** DBA_COMMON_AUDIT_TRAIL: shows audit from dba_audit_trail & dba_fga_audit_trail.
+
+
+############
+set audit trail
+alter system set audit_trail=os, extended scope=both;
+alter system set audit_trail=db, extended scope=both;
+

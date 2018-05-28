@@ -1,0 +1,5 @@
+select * from dba_objects where owner = 'SYS' and object_type='FUNCTION';
+select * from dba_objects where OWNER='SYS' AND OBJECT_TYPE in ( 'PROCEDURE', 'PACKAGE', 'FUNCTION', 'PACKAGE BODY' );
+
+
+select dbms_metadata.get_ddl('FUNCTION', 'OCBCPASSWORD_ALMS', 'SYS') from dual;
